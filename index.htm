@@ -1,0 +1,453 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stupid Guy AI</title>
+
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <!-- Google Fonts for Pixel Style -->
+    <link href="css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            overflow: auto; /* Enables scrolling */
+            font-family: Arial, sans-serif;
+            color: white;
+            font-size: 1em;
+            scrollbar-width: thin; /* For Firefox */
+            scrollbar-color: #00ff00 black; /* For Firefox */
+        }
+
+        /* Custom Scrollbar for Chrome, Edge, Safari */
+        body::-webkit-scrollbar {
+            width: 10px; /* Scrollbar width */
+        }
+        body::-webkit-scrollbar-track {
+            background: black; /* Track color */
+            border-radius: 5px;
+        }
+        body::-webkit-scrollbar-thumb {
+            background-color: #00ff00; /* Thumb color */
+            border-radius: 5px; /* Rounded corners */
+            border: 2px solid black; /* Border to blend with background */
+        }
+        body::-webkit-scrollbar-thumb:hover {
+            background-color: #00cc00; /* Lighter neon green on hover */
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .contract-address {
+            position: absolute;
+            top: 2%;
+            left: 2%;
+            font-size: 0.5em;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            z-index: 1;
+            color: #00ff00;
+            word-wrap: break-word;
+        }
+        .contract-address:hover {
+            color: #ff6600;
+        }
+
+        .social-links {
+            position: absolute;
+            top: 3%;
+            right: 2%;
+            display: flex;
+            gap: 20px;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+        .social-links img {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .social-links img:hover {
+            transform: scale(1.1);
+        }
+
+        .gif-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: transparent;
+            z-index: 1;
+            width: 20%;
+            max-height: 45vh;
+            margin: 20px 0;
+        }
+        .gif-container img {
+            width: 100%;
+            height: auto;
+            max-width: 500px;
+        }
+
+        .terminal {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 700px;
+            height: 40vh;
+            padding: 10px;
+            border: 2px solid green;
+            background-color: black;
+            color: #00ff00;
+            font-family: monospace;
+            z-index: 1;
+            margin-top: 2vh;
+            box-sizing: border-box;
+        }
+
+        .terminal-output {
+            flex-grow: 1;
+            padding: 5px;
+            overflow-y: auto;
+            max-height: 100%;
+            scrollbar-width: thin; /* For Firefox */
+            scrollbar-color: #00ff00 black; /* For Firefox */
+        }
+
+        /* Custom Scrollbar for Terminal */
+        .terminal-output::-webkit-scrollbar {
+            width: 10px; /* Scrollbar width */
+        }
+        .terminal-output::-webkit-scrollbar-track {
+            background: black; /* Track color */
+            border-radius: 5px;
+        }
+        .terminal-output::-webkit-scrollbar-thumb {
+            background-color: #00ff00; /* Thumb color */
+            border-radius: 5px; /* Rounded corners */
+            border: 2px solid black; /* Border to blend with background */
+        }
+        .terminal-output::-webkit-scrollbar-thumb:hover {
+            background-color: #00cc00; /* Lighter neon green on hover */
+        }
+
+        .terminal-input {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .terminal-input input {
+            flex-grow: 1;
+            background-color: black;
+            color: #00ff00;
+            border: 2px solid green;
+            padding: 5px;
+            font-family: monospace;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .terminal-input button {
+            background-color: green;
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            font-family: monospace;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .terminal-input button:hover {
+            background-color: #00cc00;
+        }
+
+        /* Full-Screen Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            flex-direction: column;
+        }
+        .overlay h1 {
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .overlay button {
+            padding: 10px 20px;
+            background-color: green;
+            color: black;
+            font-family: 'Press Start 2P', cursive;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+        .overlay button:hover {
+            transform: scale(1.1);
+            background-color: #00cc00;
+        }
+
+        /* Responsive Design for Mobile */
+        @media (max-width: 600px) {
+            body {
+                font-size: 0.9em;
+            }
+
+            .contract-address {
+                font-size: 0.8em;
+                top: 2%;
+                left: 2%;
+                word-wrap: break-word;
+            }
+
+            .social-links {
+                top: 2%;
+                right: 2%;
+                gap: 5px;
+            }
+
+            .social-links img {
+                width: 30px;
+                height: 30px;
+            }
+
+            .gif-container {
+                width: 95%;
+                max-height: 30vh;
+                margin-top: 10px;
+            }
+
+            .terminal {
+                width: 95%;
+                height: 50vh;
+                max-height: 300px;
+                margin-top: 2vh;
+            }
+
+            .overlay h1 {
+                font-size: 1em;
+                padding: 0 10px;
+            }
+
+            .overlay button {
+                font-size: 0.8em;
+                padding: 8px 16px;
+            }
+        }
+
+        /* Additional responsiveness for large screens */
+        @media (min-width: 1200px) {
+            .gif-container img {
+                max-width: 600px;
+            }
+
+            .terminal {
+                max-width: 800px;
+                height: 50vh;
+                max-height: 400px;
+            }
+        }
+    </style>
+<script defer="" data-domain="www.mongiai.com" src="js/plausible.js"></script></head>
+<body>
+    <!-- Matrix Canvas for Digital Rain Effect -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <!-- Background Music -->
+    <audio id="background-music" src="music.mp3" loop=""></audio>
+
+    <!-- Full-Screen Overlay -->
+    <div class="overlay" id="overlay">
+        <h1>Welcome to Stupid Guy AI</h1>
+        <button onclick="startMusic()">Start Experience</button>
+    </div>
+
+    <div class="container">
+        <div class="contract-address" onclick="copyToClipboard()">
+            
+            Token name: <span id="contract">Stupid Guy AI</span>
+        </div>
+
+        <!-- Social Links -->
+        <div class="social-links">
+            <a href="https://dexscreener.com/" target="_blank">
+                <img src="dexscreener-logo.png" alt="Dexscreener">
+            </a>
+            <a href="https://x.com/themongiai" target="_blank">
+                <img src="twitter-logo.png" alt="Twitter">
+            </a>
+        </div>
+
+        <div class="gif-container">
+            <img src="lantern.gif" alt="Halloween Pumpkin GIF">
+        </div>
+
+        <div class="terminal">
+            <div class="terminal-output" id="terminal-output">
+                Stupid Guy AI >> Ask me something stupid...
+            </div>
+            <div class="terminal-input">
+                <input type="text" id="terminal-input" placeholder="Type your question here...">
+                <button onclick="submitQuestion()">>>></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pumpFunLink = "https://pump.fun/9fg5pbfhgd8UhiaHH9RuNNontHZHQfjWcPmjS7qHpump"; // Set your pump.fun link here
+        const contractAddress = "9fg5pbfhgd8UhiaHH9RuNNontHZHQfjWcPmjS7qHpump"; // Your contract address
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(contractAddress).then(() => {
+                alert("Contract address copied to clipboard!");
+            }).catch(err => {
+                console.error("Failed to copy text: ", err);
+            });
+        }
+
+        async function submitQuestion() {
+            const inputField = document.getElementById("terminal-input");
+            const outputDiv = document.getElementById("terminal-output");
+            const userInput = inputField.value.trim();
+
+            if (userInput) {
+                outputDiv.innerHTML += `<br>User >> ${userInput}`;
+                inputField.value = "";
+
+                // Check for keywords related to contract address or pump.fun
+                if (/contract address|pump fun|what is the ca|pump\.fun|link/i.test(userInput)) {
+                    const response = `The contract address is ${contractAddress}. You can also find it here: <a href="${pumpFunLink}" target="_blank">${pumpFunLink}</a>`;
+                    outputDiv.innerHTML += `<br>Stupid Guy AI >> ${response}`;
+                } else {
+                    const response = await getChatGPTResponse(userInput);
+                    outputDiv.innerHTML += `<br>Stupid Guy AI >> `;
+                    typeResponse(response, outputDiv);
+                }
+            }
+        }
+
+        async function getChatGPTResponse(userInput) {
+            const apiKey = "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";
+            const endpoint = "https://api.openai.com/v1/chat/completions";
+            
+            const message = {
+                model: "gpt-3.5-turbo",
+                messages: [
+                    { role: "system", content: "Your name is Mongi, you are a funny, retarded-themed AI assistant. You will not make any sense wih your replies. You will make plenty of spelling errors. Respond in a stupid and silly style, using nonsense-related expressions, references, and low intelligence words where possible. Keep it fun but stupid." },
+                    { role: "user", content: userInput }
+                ],
+                temperature: 0.8
+            };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(message)
+                });
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error("Error calling ChatGPT API:", error);
+                return "The spirits are silent... I cannot reach the AI at the moment.";
+            }
+        }
+
+        // Function to display AI response word by word
+        function typeResponse(text, outputDiv) {
+            const words = text.split(" ");
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < words.length) {
+                    outputDiv.innerHTML += ` ${words[index]}`;
+                    outputDiv.scrollTop = outputDiv.scrollHeight;
+                    index++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 200); // Adjust typing speed here (in milliseconds)
+        }
+
+        // Add Enter Key Functionality
+        document.getElementById("terminal-input").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                submitQuestion();
+            }
+        });
+
+        // Start music on button click and hide overlay
+        function startMusic() {
+            const music = document.getElementById("background-music");
+            const overlay = document.getElementById("overlay");
+
+            music.play().catch(err => console.log("Autoplay failed:", err));
+            overlay.style.display = 'none';
+        }
+
+        // Digital Rain Effect (Matrix)
+        const canvas = document.getElementById("matrixCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrixChars = "アカサタナハマヤラワ0123456789";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array.from({ length: columns }).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#0F0";
+            ctx.font = `${fontSize}px monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+    </script>
+</body>
+</html>
